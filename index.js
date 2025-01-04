@@ -3,228 +3,203 @@ require("dotenv").config();
 
 const app = express();
 const { initializeDatabase } = require("./db/db.connect")
-const Book = require("./models/book.models")
+const Recipe = require("./models/recipe.models")
 
 app.use(express.json());
 
 initializeDatabase();
 
-async function createBook(newBook) {
+async function createRecipe(newRecipe) {
     try{
-        const book = new Book(newBook);
-        const saveBook = await book.save();
-        return saveBook;
+        const recipe = new Recipe(newRecipe);
+        const savedRecipe = await recipe.save();
+        return savedRecipe;
     }
     catch(error){
         console.log(error);
     }
 }
 
-app.post("/books", async (req, res) => {
+app.post("/recipes", async (req, res) => {
     try{
-        const savedBook = await createBook(req.body)
-        res.status(201).json({message: "Book added successfully.", book: savedBook})
+        const savedRecipe = await createRecipe(req.body)
+        res.status(201).json({message: "Recipe added successfully.", recipe: savedRecipe})
     }
     catch(error){
-        res.status(500).json({error: "Failed to add the book."})
+        res.status(500).json({error: "Failed to add the recipe."})
     }
 })
 
-async function readAllBooks() {
+async function readAllRecipes() {
     try{
-        const books = await Book.find()
-        return books;
+        const recipes = await Recipe.find()
+        return recipes;
     }
     catch(error){
         throw error;
     }
 }
 
-app.get("/books", async (req, res) => {
+app.get("/recipes", async (req, res) => {
     try {
-        const books = await readAllBooks();
-        if(books.length > 0)
+        const recipes = await readAllRecipes();
+        if(recipes.length > 0)
         {
-            res.json(books);
+            res.json(recipes);
         }
         else{
-            res.status(404).json({error: "No books found."});
+            res.status(404).json({error: "No recipes found."});
         }
     } catch (error) {
-        res.status(500).json({error: "Failed to fetch books."});
+        res.status(500).json({error: "Failed to fetch recipes."});
     }
 })
 
-async function readBookByTitle(bookTitle){
+async function readRecipeByTitle(recipeTitle){
     try{
-        const book = await Book.findOne({title: bookTitle});
-        return book;
+        const recipe = await Recipe.findOne({title: recipeTitle});
+        return recipe;
     }
     catch(error){
         throw error
     }
 }
 
-app.get("/books/:title", async (req, res) => {
+app.get("/recipes/:title", async (req, res) => {
     try{
-        const book = await readBookByTitle(req.params.title);
-        if(book){
-            res.json(book);
+        const recipe = await readRecipeByTitle(req.params.title);
+        if(recipe){
+            res.json(recipe);
         }
         else{
-            res.status(404).json({error: "Book not found."});
+            res.status(404).json({error: "Recipe not found."});
         }
     }
     catch(error){
-        res.status(500).json({error: "Failed to fetch book."});
+        res.status(500).json({error: "Failed to fetch recipe."});
     }
 })
 
-async function readBooksByAuthor(authorName){
+async function readRecipesByAuthor(authorName){
     try{
-        const books = await Book.find({author: authorName});
-        return books;
+        const recipes = await Recipe.find({author: authorName});
+        return recipes;
     }
     catch(error){
         throw error
     }
 }
 
-app.get("/books/author/:authorName", async (req, res) => {
+app.get("/recipes/author/:authorName", async (req, res) => {
     try{
-        const books = await readBooksByAuthor(req.params.authorName);
-        if(books.length > 0){
-            res.json(books);
+        const recipes = await readRecipesByAuthor(req.params.authorName);
+        if(recipes.length > 0){
+            res.json(recipes);
         }
         else{
-            res.status(404).json({error: "No books found."});
+            res.status(404).json({error: "No recipes found."});
         }
     }
     catch(error){
-        res.status(500).json({error: "Failed to fetch books."});
+        res.status(500).json({error: "Failed to fetch recipes."});
     }
 })
 
-async function readBooksByGenre(bookGenre){
-    try{
-        const books = await Book.find({genre: bookGenre});
-        return books;
+async function readEasyDifficultyRecipes(){
+    try{        
+        const recipes = await Recipe.find({difficulty: "Easy"});        
+        return recipes;
     }
-    catch(error){
-        throw error
+    catch(error){        
+        throw error;
     }
 }
 
-app.get("/books/genre/:bookGenre", async (req, res) => {
-    try{
-        const books = await readBooksByGenre(req.params.bookGenre);
-        if(books.length > 0){
-            res.json(books);
+app.get("/recipes/difficulty", async (req, res) => {
+    try{        
+        const recipes = await readEasyDifficultyRecipes();        
+        if(recipes.length > 0){
+            res.json(recipes);
         }
         else{
-            res.status(404).json({error: "No books found."});
+            res.status(404).json({error: "No recipes found."});
         }
     }
     catch(error){
-        res.status(500).json({error: "Failed to fetch books."});
+        res.status(500).json({error: "Failed to fetch recipes."});
     }
 })
 
-async function readBooksByReleaseYear(releaseYear){
-    try{
-        const books = await Book.find({publishedYear: releaseYear});
-        return books;
-    }
-    catch(error){
-        throw error
-    }
-}
-
-app.get("/books/year/:releaseYear", async (req, res) => {
-    try{
-        const books = await readBooksByReleaseYear(req.params.releaseYear);
-        if(books.length > 0){
-            res.json(books);
-        }
-        else{
-            res.status(404).json({error: "No books found."});
-        }
-    }
-    catch(error){
-        res.status(500).json({error: "Failed to fetch books."});
-    }
-})
-
-async function updateBook(bookId, dataToUpdate) {
+async function updateRecipe(recipeId, dataToUpdate) {
     try {
-        const updatedBook = await Book.findByIdAndUpdate(bookId, dataToUpdate, {
+        const updatedRecipe = await Recipe.findByIdAndUpdate(recipeId, dataToUpdate, {
             new: true
         });
-        return updatedBook;
+        return updatedRecipe;
     } catch (error) {
         throw error;
     }
 }
 
-app.post("/books/:bookId", async (req, res) => {
+app.post("/recipes/:recipeId", async (req, res) => {
     try {
-        const updatedBook = await updateBook(req.params.bookId, req.body);
-        if(updatedBook){            
-            res.status(200).json({message: "Book updated successfully.", updatedBook: updatedBook});
+        const updatedRecipe = await updateRecipe(req.params.recipeId, req.body);
+        if(updatedRecipe){            
+            res.status(200).json({message: "Recipe updated successfully.", updatedRecipe: updatedRecipe});
         }
         else{
-            res.status(404).json({message: "Book does not exist."});
+            res.status(404).json({message: "Recipe does not exist."});
         }
     } catch (error) {
-        res.status(500).json({error: "Failed to update the book."});
+        res.status(500).json({error: "Failed to update the recipe."});
     }
 })
 
-async function updateBookByTitle(bookTitle, dataToUpdate) {
+async function updateRecipeByTitle(recipeTitle, dataToUpdate) {
     try {
-        const updatedBook = await Book.findOneAndUpdate({title: bookTitle}, dataToUpdate, {
+        const updatedRecipe = await Recipe.findOneAndUpdate({title: recipeTitle}, dataToUpdate, {
             new: true
         });
-        return updatedBook;
+        return updatedRecipe;
     } catch (error) {
         throw error;
     }
 }
 
-app.post("/books/title/:bookTitle", async (req, res) => {
+app.post("/recipes/title/:recipeTitle", async (req, res) => {
     try {
-        const updatedBook = await updateBookByTitle(req.params.bookTitle, req.body);
-        if(updatedBook){            
-            res.status(200).json({message: "Book updated successfully.", updatedBook: updatedBook});
+        const updatedRecipe = await updateRecipeByTitle(req.params.recipeTitle, req.body);
+        if(updatedRecipe){            
+            res.status(200).json({message: "Recipe updated successfully.", updatedRecipe: updatedRecipe});
         }
         else{
-            res.status(404).json({message: "Book does not exist."});
+            res.status(404).json({message: "Recipe does not exist."});
         }
     } catch (error) {
-        res.status(500).json({error: "Failed to update the book."});
+        res.status(500).json({error: "Failed to update the recipe."});
     }
 })
 
-async function deleteBookById(bookId) {
+async function deleteRecipeById(recipeId) {
     try {
-        const deletedBook = Book.findByIdAndDelete(bookId);
-        return deletedBook;
+        const deletedRecipe = Recipe.findByIdAndDelete(recipeId);
+        return deletedRecipe;
     } catch (error) {
         throw error;
     }
 }
 
-app.delete("/books/:bookId", async (req, res) => {
+app.delete("/recipes/:recipeId", async (req, res) => {
     try {
-        const deletedBook = await deleteBookById(req.params.bookId);
-        if(deletedBook){
-            res.status(200).json({message: "Book deleted successfully.", deletedBook: deletedBook});
+        const deletedRecipe = await deleteRecipeById(req.params.recipeId);
+        if(deletedRecipe){
+            res.status(200).json({message: "Recipe deleted successfully.", deletedRecipe: deletedRecipe});
         }
         else{
-            res.status(404).json({error: "Book does not exist."});
+            res.status(404).json({error: "Recipe does not exist."});
         }
     } catch (error) {
-        res.status(500).json({error: "Failed to delete the book."});
+        res.status(500).json({error: "Failed to delete the recipe."});
     }
 })
 
