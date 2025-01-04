@@ -115,7 +115,7 @@ async function readEasyDifficultyRecipes(){
     }
 }
 
-app.get("/recipes/difficulty", async (req, res) => {
+app.get("/recipes/difficulty/easy", async (req, res) => {
     try{        
         const recipes = await readEasyDifficultyRecipes();        
         if(recipes.length > 0){
